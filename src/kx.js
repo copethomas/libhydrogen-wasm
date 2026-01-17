@@ -1,5 +1,5 @@
-const Module = require('../wasm/libhydrogen.js');
-const { encode, decode, allocateUint8Array, allocateInt8Array } = require('./utility');
+const { ccall } = require('./module-wrapper');
+const { encode, decode, allocateUint8Array } = require('./utility');
 
 const kx_SESSIONKEYBYTES = 32;
 const kx_PUBLICKEYBYTES = 32;
@@ -9,7 +9,7 @@ const kx_N_PACKET1BYTES = 48;
 
 const kxKeygen = () => {
   const buf = allocateUint8Array(kx_SECRETKEYBYTES + kx_PUBLICKEYBYTES);
-  Module.ccall('hydro_kx_keygen', 'number', ['number'], [buf.ptr]);
+  ccall('hydro_kx_keygen', 'number', ['number'], [buf.ptr]);
 
   const pk = buf.slice(0, kx_PUBLICKEYBYTES);
   const sk = buf.slice(kx_PUBLICKEYBYTES, kx_SECRETKEYBYTES + kx_PUBLICKEYBYTES);
@@ -21,7 +21,7 @@ const kxKeygen = () => {
 const kxKeygenDeterministic = (seed) => {
   const buf = allocateUint8Array(kx_SECRETKEYBYTES + kx_PUBLICKEYBYTES);
   const seedBuf = allocateUint8Array(seed.length, seed);
-  Module.ccall('hydro_kx_keygen_deterministic', 'number', ['number', 'number'], [buf.ptr, seedBuf.ptr]);
+  ccall('hydro_kx_keygen_deterministic', 'number', ['number', 'number'], [buf.ptr, seedBuf.ptr]);
 
   const pk = buf.slice(0, kx_PUBLICKEYBYTES);
   const sk = buf.slice(kx_PUBLICKEYBYTES, kx_SECRETKEYBYTES + kx_PUBLICKEYBYTES);
@@ -37,7 +37,7 @@ const kxN1 = (psk, pk) => {
   const pkBuf = allocateUint8Array(pk.length, pk);
   const pskBuf = allocateUint8Array(kx_PSKBYTES, psk);
 
-  const result = Module.ccall(
+  const result = ccall(
     'hydro_kx_n_1',
     'number',
     ['number', 'number', 'number', 'array'],
@@ -67,7 +67,7 @@ const kxN2 = (packet, psk, kp) => {
   kpBuf.set(kp.sk, kp.pk.length)
   const pskBuf = allocateUint8Array(kx_PSKBYTES, psk);
 
-  const result = Module.ccall(
+  const result = ccall(
     'hydro_kx_n_2',
     'number',
     ['number', 'number', 'number', 'number'],

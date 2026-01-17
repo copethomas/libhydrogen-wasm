@@ -1,6 +1,7 @@
-const Module = require('../wasm/libhydrogen.js');
+const { getModuleProperty } = require('./module-wrapper');
 
 function allocateUint8Array(length, contents) {
+  const Module = getModuleProperty('Module');
   const address = Module._malloc(length);
   const arr = new Uint8Array(Module.HEAPU8.buffer, address, length);
 

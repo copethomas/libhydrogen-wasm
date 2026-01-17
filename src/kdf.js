@@ -1,4 +1,4 @@
-const Module = require('../wasm/libhydrogen.js');
+const { ccall } = require('./module-wrapper');
 const { encode, decode, allocateUint8Array, allocateInt8Array } = require('./utility');
 
 const kdf_CONTEXTBYTES = 8;
@@ -8,7 +8,7 @@ const kdf_BYTES_MIN = 16;
 
 const kdfKeygen = () => {
   const buf = allocateUint8Array(kdf_KEYBYTES);
-  Module.ccall('hydro_kdf_keygen', 'number', ['number'], [buf.ptr]);
+  ccall('hydro_kdf_keygen', 'number', ['number'], [buf.ptr]);
   return buf.freeAndCopy();
 };
 
@@ -16,7 +16,7 @@ const kdfDeriveFromKey = (size, id, context, key) => {
   const subkey = allocateUint8Array(size);
   const keyBuffer = allocateUint8Array(kdf_KEYBYTES, key);
 
-  Module.ccall(
+  ccall(
     'hydro_kdf_derive_from_key',
     'number',
     ['number', 'number', 'number', 'number', 'string', 'number'],

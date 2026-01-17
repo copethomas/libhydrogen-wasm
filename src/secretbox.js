@@ -1,4 +1,4 @@
-const Module = require('../wasm/libhydrogen.js');
+const { ccall } = require('./module-wrapper');
 const { encode, decode, allocateUint8Array, allocateInt8Array } = require('./utility');
 
 const secretbox_CONTEXTBYTES = 8;
@@ -8,7 +8,7 @@ const secretbox_PROBEBYTES = 16;
 
 const secretboxKeygen = () => {
   const buf = allocateUint8Array(secretbox_KEYBYTES);
-  Module.ccall('hydro_secretbox_keygen', 'number', ['number'], [buf.ptr]);
+  ccall('hydro_secretbox_keygen', 'number', ['number'], [buf.ptr]);
   buf.free();
   return Uint8Array.from(buf);
 }
@@ -19,7 +19,7 @@ const secretboxEncrypt = (messageBytes, context, key, id) => {
   const contextBuffer = allocateUint8Array(8);
   const keyBuf = allocateUint8Array(secretbox_KEYBYTES, key);
 
-  Module.ccall(
+  ccall(
     'hydro_secretbox_encrypt',
     'number',
     [ 'number', 'number', 'number', 'number', 'number', 'string', 'number' ],
@@ -38,7 +38,7 @@ const secretboxDecrypt = (cipherTextBytes, context, key, id) => {
   const contextBuffer = allocateUint8Array(8, new Uint8Array([0x45, 0x45, 0x45, 0x45, 0x45, 0x45, 0x45, 0x44]));
   const keyBuf = allocateUint8Array(secretbox_KEYBYTES, key);
 
-  const decryptStatus = Module.ccall(
+  const decryptStatus = ccall(
     'hydro_secretbox_decrypt',
     'number',
     ['number', 'number', 'number', 'number', 'number', 'string', 'number'],
@@ -61,7 +61,7 @@ const secretboxProbeCreate = (cipherTextBytes, context, key) => {
   const keyBuf = allocateUint8Array(secretbox_KEYBYTES, key);
   const contextBuf = allocateUint8Array(secretbox_CONTEXTBYTES, encode(context));
 
-  Module.ccall('hydro_secretbox_probe_create', 'number', ['number', 'number', 'number', 'number', 'number'], [probeBuf.ptr, cipherTextBuf.ptr, cipherTextBuf.length, contextBuf.ptr, keyBuf.ptr]);
+  ccall('hydro_secretbox_probe_create', 'number', ['number', 'number', 'number', 'number', 'number'], [probeBuf.ptr, cipherTextBuf.ptr, cipherTextBuf.length, contextBuf.ptr, keyBuf.ptr]);
 
   cipherTextBuf.free();
   keyBuf.free();
@@ -76,7 +76,7 @@ const secretboxProbeVerify = (probe, cipherTextBytes, context, key) => {
   const contextBuf = allocateUint8Array(secretbox_CONTEXTBYTES, encode(context));
   const keyBuf = allocateUint8Array(secretbox_KEYBYTES, key);
 
-  const result = Module.ccall('hydro_secretbox_probe_verify', 'number', ['number', 'number', 'number', 'number', 'number'], [probeBuf.ptr, cipherTextBuf.ptr, cipherTextBuf.length, contextBuf.ptr, keyBuf.ptr]);
+  const result = ccall('hydro_secretbox_probe_verify', 'number', ['number', 'number', 'number', 'number', 'number'], [probeBuf.ptr, cipherTextBuf.ptr, cipherTextBuf.length, contextBuf.ptr, keyBuf.ptr]);
 
   probeBuf.free();
   keyBuf.free();
